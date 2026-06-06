@@ -37,7 +37,7 @@ cursor:pointer;
 
 <div style="display:flex;align-items:center;gap:15px;">
 
-<img src="logo.png"
+<img src="logo.png.jpg"
 style="
 height:70px;
 border-radius:12px;
@@ -45,7 +45,7 @@ border-radius:12px;
 
 <div>
 
-<h1>Dashboard - Vendas </h1>
+<h1>Dashboard - Vendas</h1>
 
 
 </div>
@@ -187,6 +187,9 @@ document.getElementById('dataFinal')
 
 document.getElementById('produtoBusca')
 .addEventListener('input', aplicarFiltros);
+
+document.getElementById('anoFiltro')
+.addEventListener('change', aplicarFiltros);
 
 function carregar(e){
 
