@@ -525,21 +525,78 @@ render();
 
 }
 
+const produtosExcluidos = [
+'27',
+'47',
+'51',
+'205',
+'214',
+'218',
+'259',
+'261',
+'348',
+'383',
+'4251',
+'4553',
+'7109',
+'8938',
+'10021',
+'11056',
+'11477',
+'11772',
+'11860',
+'12331',
+'12691',
+'12696',
+'13029',
+'13069',
+'13166',
+'13168',
+'13199',
+'13327',
+'13534',
+'16405',
+'16423',
+'16526',
+'16528',
+'16612',
+'16682',
+'16827',
+'16830',
+'17117',
+'17132',
+'17134',
+'17166',
+'17169',
+'17171',
+'17173',
+'17175'
+];
+
 function agrupar(campo){
 
 let o={};
 
 filtrados.forEach(x=>{
 
-const k = x[campo] || 'Não informado';
+    if (
+        campo === 'Desc.completa' &&
+        produtosExcluidos.includes(
+            String(x['Produto']).trim()
+        )
+    ){
+        return;
+    }
 
-const valor = numero(
-x['Valor Fat+Valor IPI+Valor Frete']
-);
+    const k = x[campo] || 'Não informado';
 
-const qtd = numero(
-x['Qtd.item/Ft']
-);
+    const valor = numero(
+        x['Valor Fat+Valor IPI+Valor Frete']
+    );
+
+    const qtd = numero(
+        x['Qtd.item/Ft']
+    );
 
 if(!o[k]){
 
