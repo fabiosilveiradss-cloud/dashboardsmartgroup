@@ -26,7 +26,13 @@ input[type="date"]::-webkit-calendar-picker-indicator{
 filter:invert(1);
 cursor:pointer;
 }
-.row{display:grid;grid-template-columns:320px 1fr 140px;gap:12px;align-items:center;margin-bottom:14px}
+.row{
+    display:grid;
+    grid-template-columns:420px 1fr;
+    gap:12px;
+    align-items:center;
+    margin-bottom:18px;
+}
 .bar-bg{background:#18356d;height:28px;border-radius:10px;overflow:hidden}
 .bar{height:100%;background:#4f8cff;border-radius:10px}
 .uf{display:inline-block;background:#18356d;padding:14px;border-radius:12px;margin:8px;min-width:100px;text-align:center;cursor:pointer}
@@ -98,7 +104,7 @@ border-radius:12px;
 </div>
 
 <div class="chart">
-<h2>📦 Faturamento por Grupo</h2>
+<h2>🔥 Top 10 Produtos</h2>
 <div id="grupo"></div>
 </div>
 
@@ -540,6 +546,7 @@ const produtosExcluidos = [
 '4553',
 '7109',
 '8938',
+'8939',
 '10021',
 '11056',
 '11477',
@@ -661,7 +668,7 @@ maximumFractionDigits:2
 ' Total de Metros';
 
 barras('clientes',agrupar('Razão social'),10);
-barras('grupo',agrupar('Descrição'),10);
+barras('grupo',agrupar('Desc.completa'),10);
 barras('produtos',agrupar('Desc.completa'),9999);
 
 ufs();
@@ -672,7 +679,11 @@ function barras(id,obj,lim){
 
 const el=document.getElementById(id);
 
-const produtos = id === 'produtos';
+const produtos =
+id === 'produtos' ||
+id === 'grupo';
+
+const top10 = id === 'grupo';
 
 const itens=Object.entries(obj)
 .sort((a,b)=>
@@ -695,43 +706,99 @@ const base = produtos ? i[1].qtd : i[1].valor;
 const pct=(base/max)*100;
 
 html += `
-<div class="row">
+<div class="${id === 'clientes' ? 'cliente-row' : 'row'}">
 
 <div>
 
 <div
-onclick="detalharProduto('${i[0].replace(/'/g,"\\'")}')"
+${produtos ? `onclick="detalharProduto('${i[0].replace(/'/g,"\\'")}')"` : ''}
 style="
 font-weight:600;
-margin-bottom:8px;
-cursor:pointer;
+font-size:15px;
+display:grid;
+grid-template-columns: 400px 170px 220px 120px;
+column-gap:20px;
+align-items:center;
+margin-bottom:14px;
+cursor:${produtos ? 'pointer' : 'default'};
 "
 >
+${id === 'clientes' ? `
+
+<div style="
+width:330px;
+overflow:hidden;
+text-overflow:ellipsis;
+white-space:nowrap;
+">
 ${i[1].codigo} • ${i[0]}
+</div>
+
+<div style="
+width:170px;
+text-align:left;
+font-size:15px;
+font-weight:600;
+">
+📏 ${i[1].qtd.toLocaleString('pt-BR')} m
+</div>
+
+<div style="
+width:220px;
+text-align:left;
+font-size:15px;
+font-weight:600;
+">
+💰 ${moeda(i[1].valor)}
+</div>
+
+<div style="
+width:120px;
+text-align:left;
+font-size:15px;
+font-weight:600;
+">
+🏷️ ${moeda(i[1].qtd ? i[1].valor / i[1].qtd : 0)}
+</div>
+
+` : `
+
+<span>
+${i[1].codigo} • ${i[0]}
+</span>
+
+`}
+
 </div>
 
 </div>
 
 <div>
 
+${top10 ? '' : `
+${id !== 'clientes' ? `
 <div class="bar-bg">
 <div class="bar" style="width:${pct}%"></div>
 </div>
+` : ''}
+
+`}
 
 ${produtos ? `
 <div style="
 display:flex;
 justify-content:flex-end;
 gap:12px;
-margin-top:8px;
-font-size:13px;
+margin-top:${top10 ? '4px' : '8px'};
+font-size:${top10 ? '10px' : '13px'};
 font-weight:600;
-flex-wrap:wrap;
+flex-wrap:nowrap;
+align-items:center;
 ">
 
 <div style="text-align:center">
 <div style="
-font-size:10px;
+font-size:8px;
 color:#8fb3ff;
 margin-bottom:4px;
 letter-spacing:1px;
@@ -741,11 +808,11 @@ METROS
 
 <span style="
 background:#16356d;
-padding:5px 12px;
+padding:9px 8px;
 border-radius:20px;
 color:#dbe7ff;
 display:inline-block;
-min-width:110px;
+min-width:${top10 ? '65px' : '110px'};
 ">
 📏 ${i[1].qtd.toLocaleString('pt-BR')} m
 </span>
@@ -767,7 +834,7 @@ padding:5px 12px;
 border-radius:20px;
 color:white;
 display:inline-block;
-min-width:140px;
+min-width:${top10 ? '95px' : '140px'};
 box-shadow:0 0 10px rgba(37,99,235,.35);
 ">
 💰 ${moeda(i[1].valor)}
@@ -790,7 +857,7 @@ padding:5px 12px;
 border-radius:20px;
 color:white;
 display:inline-block;
-min-width:110px;
+min-width:${top10 ? '65px' : '110px'};
 box-shadow:0 0 10px rgba(15,118,110,.35);
 ">
 🏷️ ${moeda(i[1].qtd ? i[1].valor / i[1].qtd : 0)}
@@ -800,9 +867,6 @@ box-shadow:0 0 10px rgba(15,118,110,.35);
 </div>
 ` : ''}
 
-</div>
-
-<div>
 </div>
 
 </div>
@@ -1004,7 +1068,7 @@ const obj=agrupar('UF');
 let html='';
 
 Object.entries(obj)
-.sort((a,b)=>b[1]-a[1])
+.sort((a,b)=>b[1].valor-a[1].valor)
 .forEach(i=>{
 
 html += `
