@@ -3,40 +3,100 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Dashboard Comercial Offline</title>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<title>Dashboard Comercial Smart Group</title>
+</head>
 
 <style>
-body{background:#071633;color:white;font-family:Arial;padding:20px}
+body{background:#071633;color:white;font-family:Arial;padding:28px}
 h1{font-size:38px}
-.upload,.card,.chart{background:#10224a;border-radius:18px;padding:20px}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin:25px 0}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.full{grid-column:span 2}
-.filters{display:flex;gap:15px;margin-top:15px;flex-wrap:wrap}
-select{padding:12px;border:none;border-radius:10px;background:#18356d;color:white;min-width:300px}
-input[type="date"]{
-padding:12px;
-border:none;
-border-radius:10px;
-background:#18356d;
-color:white;
-min-width:180px;
+.upload,.card,.chart{
+background:#10224a;
+border-radius:18px;
+padding:28px;
+margin:0;
+box-sizing:border-box;
 }
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin:25px 0}
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+}
+
+@media(max-width:1200px){
+
+.grid{
+grid-template-columns:1fr;
+}
+
+}
+
+.full{grid-column:1/-1;}
+.filters{display:flex;gap:15px;margin-top:15px;flex-wrap:wrap;}
+select,input[type="date"]{padding:12px;border:none;border-radius:10px;background:#18356d;color:white;flex:1;min-width:220px;}
+
 input[type="date"]::-webkit-calendar-picker-indicator{
 filter:invert(1);
 cursor:pointer;
 }
 .row{
-    display:grid;
-    grid-template-columns:420px 1fr;
-    gap:12px;
-    align-items:center;
-    margin-bottom:18px;
+display:grid;
+grid-template-columns:420px 1fr;
+gap:12px;
+align-items:center;
+margin-bottom:18px;
 }
-.bar-bg{background:#18356d;height:28px;border-radius:10px;overflow:hidden}
-.bar{height:100%;background:#4f8cff;border-radius:10px}
-.uf{display:inline-block;background:#18356d;padding:14px;border-radius:12px;margin:8px;min-width:100px;text-align:center;cursor:pointer}
-.uf:hover{background:#2563eb}
+.bar-bg{
+background:#18356d;
+height:28px;
+border-radius:10px;
+overflow:hidden;
+}
+.bar{
+height:100%;
+background:#4f8cff;
+border-radius:10px;
+}
+.uf{
+display:inline-block;
+background:#18356d;
+padding:14px;
+border-radius:12px;
+margin:8px;
+min-width:100px;
+text-align:center;
+cursor:pointer;
+}
+.uf:hover{
+background:#2563eb;
+}
+
+@media(max-width:768px){
+
+body{
+padding:10px;
+}
+
+h1{
+font-size:28px;
+}
+
+.filters{
+flex-direction:column;
+}
+
+.grid{
+grid-template-columns:1fr;
+}
+
+.cards{
+grid-template-columns:1fr;
+}
+
+}
+
 </style>
 </head>
 <body>
@@ -60,16 +120,12 @@ border-radius:12px;
 
 <div class="upload">
 
-<input type="file" id="csvFile" accept=".csv">
+<input type="file" id="csvFile" accept=".csv,.xlsx,.xls">
 
 <div class="filters">
 
 <select id="ufFiltro">
 <option value="">Todas UF</option>
-</select>
-
-<select id="clienteFiltro">
-<option value="">Todos os Clientes</option>
 </select>
 
 <div style="position:relative;">
@@ -109,9 +165,71 @@ box-shadow:0 10px 25px rgba(0,0,0,.4);
 
 </div>
 
-<select id="repFiltro">
-<option value="">Todos os Representantes</option>
+<div style="position:relative;">
+
+<button
+id="btnRepresentantes"
+onclick="toggleRepresentantesMulti()"
+style="
+padding:10px;
+border:none;
+border-radius:10px;
+background:#1d3b7a;
+color:white;
+cursor:pointer;
+min-width:220px;
+">
+👤 Selecionar Representantes
+</button>
+
+<div
+id="representantesMulti"
+style="
+display:none;
+position:absolute;
+top:45px;
+left:0;
+width:300px;
+max-height:220px;
+overflow-y:auto;
+background:#18356d;
+padding:15px;
+border-radius:10px;
+z-index:9999;
+box-shadow:0 10px 25px rgba(0,0,0,.4);
+">
+</div>
+
+</div>
+
+<select id="grupoFiltro">
+
+<option value="">
+Todos os Grupos
+</option>
+
+<option value="MATERIAIS PARAGUAI">
+Materiais Paraguai
+</option>
+
+<option value="SMART CATALOGO">
+Smart Catálogo
+</option>
+
+<option value="STK">
+STK
+</option>
+
+<option value="PRODUCAO">
+PRODUCAO
+</option>
+
+<option value="SUBSTRATO">
+Substrato
+</option>
+
 </select>
+
 
 <select id="anoFiltro">
 <option value="">Todos os Anos</option>
@@ -200,28 +318,14 @@ let produtoSelecionado = '';
 let produtoDetalheHTML = '';
 
 let clientesSelecionados = [];
+let representantesSelecionados = [];
 
 document.getElementById('csvFile').addEventListener('change', carregar);
 
 document.getElementById('ufFiltro')
 .addEventListener('change', ()=>{
-popularClientes();
 aplicarFiltros();
 });
-
-document.getElementById('clienteFiltro')
-.addEventListener('change', aplicarFiltros);
-
-document.getElementById('repFiltro')
-.addEventListener('change', ()=>{
-
-popularClientes();
-aplicarFiltros();
-
-});
-
-document.getElementById('repFiltro')
-.addEventListener('change', aplicarFiltros);
 
 document.getElementById('dataInicial')
 .addEventListener('change', aplicarFiltros);
@@ -229,36 +333,216 @@ document.getElementById('dataInicial')
 document.getElementById('dataFinal')
 .addEventListener('change', aplicarFiltros);
 
-
 document.getElementById('produtoBusca')
 .addEventListener('input', aplicarFiltros);
 
 document.getElementById('anoFiltro')
 .addEventListener('change', aplicarFiltros);
 
+document.getElementById('grupoFiltro')
+.addEventListener('change', aplicarFiltros);
+
 function carregar(e){
 
-const file=e.target.files[0];
+const file = e.target.files[0];
 
-const reader=new FileReader();
+if(!file) return;
 
-reader.onload=function(evt){
+const nome =
+file.name.toLowerCase();
 
-dados=parseCSV(evt.target.result);
+if(nome.endsWith('.csv')){
+
+const reader =
+new FileReader();
+
+reader.onload = function(evt){
+
+dados =
+parseCSV(evt.target.result);
 
 popularUF();
-popularClientes();
 popularClientesMulti();
-popularRepresentantes();
+popularRepresentantesMulti();
 popularAnos();
 
 aplicarFiltros();
 
 };
 
-reader.readAsText(file,'utf-8');
+reader.readAsText(
+file,
+'utf-8'
+);
+
+return;
 
 }
+
+if(
+nome.endsWith('.xlsx')
+||
+nome.endsWith('.xls')
+){
+
+const reader =
+new FileReader();
+
+reader.onload =
+function(evt){
+
+const data =
+new Uint8Array(
+evt.target.result
+);
+
+const workbook =
+XLSX.read(
+data,
+{
+type:'array'
+}
+);
+
+const sheet =
+workbook.Sheets[
+workbook.SheetNames[0]
+];
+
+const linhas =
+XLSX.utils.sheet_to_json(
+sheet,
+{
+header:1,
+defval:''
+}
+);
+
+const idxCabecalho =
+linhas.findIndex(
+l =>
+Array.isArray(l) &&
+l.some(c =>
+String(c)
+.includes('Razão')
+)
+);
+
+const headers =
+linhas[idxCabecalho];
+
+dados =
+linhas
+.slice(idxCabecalho + 1)
+.map(l=>{
+
+let obj = {};
+
+headers.forEach((h,i)=>{
+
+let valor = l[i];
+
+if(
+h === 'Dt.faturam' &&
+typeof valor === 'number'
+){
+
+const dataExcel =
+new Date(
+(Date.UTC(1899,11,30))
++
+(valor * 86400000)
+);
+
+valor =
+dataExcel
+.toISOString()
+.substring(0,10);
+
+}
+
+obj[h] = valor;
+
+});
+
+return obj;
+
+})
+.filter(
+x => x['Razão social']
+);
+
+const total2025 = dados
+.filter(x =>
+String(x['Dt.faturam']).includes('2025')
+)
+.reduce(
+(a,b) =>
+a + numero(
+b['Valor Fat+Valor IPI+Valor Frete']
+),
+0
+);
+
+const total2026 = dados
+.filter(x =>
+String(x['Dt.faturam']).includes('2026')
+)
+.reduce(
+(a,b) =>
+a + numero(
+b['Valor Fat+Valor IPI+Valor Frete']
+),
+0
+);
+
+popularUF();
+popularClientesMulti();
+popularRepresentantesMulti();
+popularAnos();
+
+aplicarFiltros();
+
+};
+
+reader.readAsArrayBuffer(
+file
+);
+
+}
+
+}
+
+console.log(
+'Total registros carregados:',
+dados.length
+);
+
+const anosTeste = {};
+
+dados.forEach(x=>{
+
+const ano =
+String(x['Dt.faturam']).substring(0,4);
+
+if(!anosTeste[ano]){
+
+anosTeste[ano] = {
+qtd:0,
+fat:0
+};
+
+}
+
+anosTeste[ano].qtd++;
+
+anosTeste[ano].fat += numero(
+x['Valor Fat+Valor IPI+Valor Frete']
+);
+
+});
+
+console.log(anosTeste);
 
 function parseCSV(texto){
 
@@ -287,12 +571,39 @@ return o;
 
 function numero(v){
 
+if(typeof v === 'number'){
+return v;
+}
+
+const txt =
+String(v || '').trim();
+
+if(txt === ''){
+return 0;
+}
+
+if(
+txt.includes('.') &&
+txt.includes(',')
+){
+
 return Number(
-String(v||'0')
+txt
 .replace(/\./g,'')
 .replace(',','.')
-.replace(/[^\d.-]/g,'')
-)||0;
+);
+
+}
+
+if(txt.includes(',')){
+
+return Number(
+txt.replace(',','.')
+);
+
+}
+
+return Number(txt);
 
 }
 
@@ -318,134 +629,6 @@ uf.innerHTML='<option value="">Todas UF</option>';
 uf.innerHTML += `<option value="${u}">${u}</option>`;
 
 });
-
-}
-
-function popularClientes(){
-
-const cliente =
-document.getElementById('clienteFiltro');
-
-cliente.innerHTML =
-'<option value="">Todos os Clientes</option>';
-
-const uf =
-document.getElementById('ufFiltro').value;
-
-const rep =
-document.getElementById('repFiltro').value;
-
-let base = dados;
-
-if(uf){
-
-base = base.filter(x => x['UF'] === uf);
-
-}
-
-if(rep){
-
-base = base.filter(
-x => x['Abreviação'] === rep
-);
-
-}
-
-[...new Set(
-base.map(x => x['Razão social'])
-.filter(Boolean)
-)]
-.sort()
-.forEach(c=>{
-
-cliente.innerHTML +=
-`<option value="${c}">${c}</option>`;
-
-});
-
-}
-
-function popularRepresentantes(){
-
-const select =
-document.getElementById('repFiltro');
-
-select.innerHTML =
-'<option value="">Todos os Representantes</option>';
-
-const reps = [
-...new Set(
-dados.map(x => x['Abreviação'])
-.filter(Boolean)
-)
-].sort();
-
-reps.forEach(r=>{
-
-select.innerHTML +=
-`<option value="${r}">${r}</option>`;
-
-});
-
-}
-
-function popularRepresentantesFiltrados(lista){
-
-const select =
-document.getElementById('repFiltro');
-
-const atual = select.value;
-
-const reps = [
-...new Set(
-lista.map(x => x['Abreviação'])
-.filter(Boolean)
-)
-].sort();
-
-select.innerHTML =
-'<option value="">Todos os Representantes</option>';
-
-reps.forEach(r=>{
-
-select.innerHTML +=
-`<option value="${r}">${r}</option>`;
-
-});
-
-if(reps.includes(atual)){
-select.value = atual;
-}
-
-}
-
-function popularClientesFiltrados(lista){
-
-const select =
-document.getElementById('clienteFiltro');
-
-const atual = select.value;
-
-const clientes = [
-...new Set(
-lista.map(x => x['Razão social'])
-.filter(Boolean)
-)
-].sort();
-
-select.innerHTML =
-'<option value="">Todos os Clientes</option>';
-
-clientes.forEach(c=>{
-
-select.innerHTML +=
-`<option value="${c}">${c}</option>`;
-
-});
-
-if(clientes.includes(atual)){
-select.value = atual;
-}
 
 }
 
@@ -569,24 +752,160 @@ chk.value
 aplicarFiltros();
 
 }
+function popularRepresentantesMulti(){
+
+const el =
+document.getElementById('representantesMulti');
+
+const reps = [
+...new Set(
+dados.map(x => x['Abreviação'])
+.filter(Boolean)
+)
+].sort();
+
+let html = `
+
+<label style="
+display:block;
+margin-bottom:10px;
+font-weight:bold;
+">
+
+<input
+type="checkbox"
+id="todosRepresentantes"
+checked
+onchange="toggleTodosRepresentantes()"
+>
+
+Selecionar Todos
+
+</label>
+
+`;
+
+reps.forEach(r=>{
+
+html += `
+
+<label style="
+display:block;
+margin-bottom:5px;
+">
+
+<input
+type="checkbox"
+class="repCheck"
+value="${r}"
+checked
+onchange="atualizarRepresentantesSelecionados()"
+>
+
+${r}
+
+</label>
+
+`;
+
+});
+
+el.innerHTML = html;
+
+representantesSelecionados = [...reps];
+
+}
+
+function toggleTodosRepresentantes(){
+
+const marcado =
+document.getElementById('todosRepresentantes')
+.checked;
+
+document
+.querySelectorAll('.repCheck')
+.forEach(chk=>{
+
+chk.checked = marcado;
+
+});
+
+atualizarRepresentantesSelecionados();
+
+}
+
+function atualizarRepresentantesSelecionados(){
+
+representantesSelecionados = [];
+
+document
+.querySelectorAll('.repCheck')
+.forEach(chk=>{
+
+if(chk.checked){
+
+representantesSelecionados.push(
+chk.value
+);
+
+}
+
+});
+
+const total =
+document.querySelectorAll('.repCheck').length;
+
+document.getElementById(
+'todosRepresentantes'
+).checked =
+representantesSelecionados.length === total;
+
+aplicarFiltros();
+
+}
+
+function toggleRepresentantesMulti(){
+
+const box =
+document.getElementById('representantesMulti');
+
+box.style.display =
+box.style.display === 'block'
+? 'none'
+: 'block';
+
+}
 
 document.addEventListener('click', function(e){
 
-const box =
+const boxClientes =
 document.getElementById('clientesMulti');
 
-const botao =
+const btnClientes =
 document.getElementById('btnClientes');
 
 if(
-box &&
-botao &&
-!box.contains(e.target) &&
-!botao.contains(e.target)
+boxClientes &&
+btnClientes &&
+!boxClientes.contains(e.target) &&
+!btnClientes.contains(e.target)
 ){
+boxClientes.style.display = 'none';
+}
 
-box.style.display = 'none';
+const boxRepresentantes =
+document.getElementById('representantesMulti');
 
+const btnRepresentantes =
+document.getElementById('btnRepresentantes');
+
+if(
+boxRepresentantes &&
+btnRepresentantes &&
+!boxRepresentantes.contains(e.target) &&
+!btnRepresentantes.contains(e.target)
+){
+boxRepresentantes.style.display = 'none';
 }
 
 });
@@ -603,11 +922,16 @@ const anos = [...new Set(
 
 dados.map(x=>{
 
-const data = x['Dt.faturam'];
+const data =
+String(x['Dt.faturam'] || '');
 
-if(!data) return null;
+if(data.length >= 4){
 
-return data.split('/')[2];
+return data.substring(0,4);
+
+}
+
+return null;
 
 })
 
@@ -626,10 +950,16 @@ select.innerHTML +=
 
 function aplicarFiltros(){
 
-const uf=document.getElementById('ufFiltro').value;
-const cliente=document.getElementById('clienteFiltro').value;
-const rep=document.getElementById('repFiltro').value;
-const ano=document.getElementById('anoFiltro').value;
+const uf =
+document.getElementById('ufFiltro').value;
+
+const grupo =
+document.getElementById('grupoFiltro').value;
+
+const rep = '';
+
+const ano =
+document.getElementById('anoFiltro').value;
 
 const dataInicial =
 document.getElementById('dataInicial').value;
@@ -645,19 +975,55 @@ document.getElementById('produtoBusca')
 filtrados=dados.filter(x=>{
 
 const okUF=!uf || x['UF']===uf;
-const okCliente =clientesSelecionados.length === 0? true: clientesSelecionados.includes(x['Razão social']
+const okCliente =
+clientesSelecionados.length === 0 ||
+clientesSelecionados.length ===
+document.querySelectorAll('.clienteCheck').length
+? true
+: clientesSelecionados.includes(
+x['Razão social']
 );
-const okRep =
-!rep || x['Abreviação']===rep;
 
-const dataFat = x['Dt.faturam'];
+const descricao =
+String(x['Descrição'] || '')
+.toUpperCase();
+
+let okGrupo = true;
+
+if(grupo){
+
+okGrupo =
+descricao.includes(grupo);
+
+}
+
+const okRep =
+representantesSelecionados.length === 0 ||
+representantesSelecionados.length ===
+document.querySelectorAll('.repCheck').length
+? true
+: representantesSelecionados.includes(
+x['Abreviação']
+);
+
+const dataFat =
+String(x['Dt.faturam'] || '');
 
 let okAno = true;
 
 if(ano && dataFat){
 
+if(String(dataFat).includes('/')){
+
 okAno =
 dataFat.split('/')[2] === ano;
+
+}else{
+
+okAno =
+String(dataFat).substring(0,4) === ano;
+
+}
 
 }
 
@@ -665,27 +1031,38 @@ let okData = true;
 
 if(dataFat){
 
-    const [dia, mes, anoLinha] =
-    dataFat.split('/');
+let dataLinha = '';
 
-    const dataLinha =
-    `${anoLinha}-${mes}-${dia}`;
+if(String(dataFat).includes('/')){
 
-    if(dataInicial){
+const [dia, mes, anoLinha] =
+dataFat.split('/');
 
-        okData =
-        okData &&
-        dataLinha >= dataInicial;
+dataLinha =
+`${anoLinha}-${mes}-${dia}`;
 
-    }
+}else{
 
-    if(dataFinal){
+dataLinha =
+String(dataFat).substring(0,10);
 
-        okData =
-        okData &&
-        dataLinha <= dataFinal;
+}
 
-    }
+if(dataInicial){
+
+okData =
+okData &&
+dataLinha >= dataInicial;
+
+}
+
+if(dataFinal){
+
+okData =
+okData &&
+dataLinha <= dataFinal;
+
+}
 
 }
 
@@ -698,6 +1075,7 @@ const okProduto =
 produto.includes(buscaProduto);
 
 return okUF &&
+okGrupo &&
 okCliente &&
 okRep &&
 okAno &&
@@ -705,10 +1083,6 @@ okProduto &&
 okData;
 
 });
-
-popularClientesFiltrados(filtrados);
-
-popularRepresentantesFiltrados(filtrados);
 
 render();
 
@@ -763,6 +1137,19 @@ const produtosExcluidos = [
 '17175'
 ];
 
+const gruposExcluidos = [
+'LACA/GLITTER',
+'SERVIÇOS..',
+'IMPRESSÃO'
+
+
+];
+
+const okExclusao =
+!gruposExcluidos.includes(
+String(x['Descrição'] || '').trim()
+);
+
 function agrupar(campo){
 
 let o={};
@@ -808,29 +1195,12 @@ return o;
 
 function render(){
 
-console.log(
-'UFs filtradas:',
-[...new Set(
-filtrados.map(x => x['UF'])
-)]
-);
-
-console.log(
-'Registros filtrados:',
-filtrados.length
-);
-
 const fat=filtrados.reduce((a,b)=>
 a+numero(b['Valor Fat+Valor IPI+Valor Frete']),0);
 
 const metrosVendidos = filtrados.reduce((a,b)=>
 a + numero(b['Qtd.item/Ft'])
 ,0);
-
-console.log(
-'Faturamento:',
-fat
-);
 
 const qtd = filtrados.length;
 
@@ -850,9 +1220,15 @@ maximumFractionDigits:2
 }) +
 ' Total de Metros';
 
-barras('clientes',agrupar('Razão social'),10);
-barras('grupo',agrupar('Desc.completa'),10);
-barras('produtos',agrupar('Desc.completa'),9999);
+const clientesAgrupados =
+agrupar('Razão social');
+
+const produtosAgrupados =
+agrupar('Desc.completa');
+
+barras('clientes',clientesAgrupados,10);
+barras('grupo',produtosAgrupados,10);
+barras('produtos',produtosAgrupados,9999);
 
 ufs();
 
@@ -860,77 +1236,245 @@ ufs();
 
 function barras(id,obj,lim){
 
-const el=document.getElementById(id);
+const el = document.getElementById(id);
 
 const produtos =
-id === 'produtos' ||
-id === 'grupo';
+id === 'grupo' ||
+id === 'produtos';
 
-const top10 = id === 'grupo';
+const listaProdutos =
+id === 'produtos';
 
-const itens=Object.entries(obj)
-.sort((a,b)=>
-produtos
-? b[1].qtd-a[1].qtd
-: b[1].valor-a[1].valor
-)
+const itens = Object.entries(obj)
+.sort((a,b)=>{
+
+if(id === 'grupo'){
+
+return b[1].valor - a[1].valor;
+
+}
+
+if(id === 'produtos'){
+
+return b[1].qtd - a[1].qtd;
+
+}
+
+return b[1].valor - a[1].valor;
+
+})
 .slice(0,lim);
 
-const max=itens[0]
-? (produtos ? itens[0][1].qtd : itens[0][1].valor)
-:1;
-
-let html='';
+let html = '';
 
 itens.forEach(i=>{
 
-const base = produtos ? i[1].qtd : i[1].valor;
+const base =
+produtos
+? i[1].qtd
+: i[1].valor;
 
-const pct=(base/max)*100;
+const max =
+itens[0]
+? (
+produtos
+? itens[0][1].qtd
+: itens[0][1].valor
+)
+: 1;
+
+const pct =
+(max > 0)
+? (base / max) * 100
+: 0;
+
+if(listaProdutos){
 
 html += `
-<div class="${id === 'clientes' ? 'cliente-row' : 'row'}">
-
-<div>
-
-<div
-${produtos ? `onclick="detalharProduto('${i[0].replace(/'/g,"\\'")}')"` : ''}
-style="
-font-weight:600;
-font-size:15px;
-display:grid;
-grid-template-columns: 400px 170px 220px 120px;
-column-gap:20px;
-align-items:center;
-margin-bottom:14px;
-cursor:${produtos ? 'pointer' : 'default'};
-"
->
-${id === 'clientes' ? `
 
 <div style="
-width:330px;
-overflow:hidden;
-text-overflow:ellipsis;
-white-space:nowrap;
+margin-bottom:28px;
+">
+
+<div style="
+font-weight:600;
+font-size:14px;
+margin-bottom:10px;
 ">
 ${i[1].codigo} • ${i[0]}
 </div>
 
 <div style="
-width:170px;
-text-align:left;
-font-size:15px;
+background:#1d3f7f;
+height:30px;
+border-radius:12px;
+overflow:hidden;
+">
+
+<div style="
+width:${pct}%;
+height:100%;
+background:#5a8df5;
+border-radius:12px;
+">
+</div>
+
+</div>
+
+<div style="
+display:flex;
+justify-content:flex-end;
+gap:12px;
+margin-top:8px;
+align-items:flex-start;
+">
+
+<div style="
+width:140px;
+text-align:center;
+">
+
+<div style="
+font-size:10px;
+color:#8fb3ff;
+letter-spacing:1px;
+margin-bottom:4px;
+">
+METROS
+</div>
+
+<div style="
+background:#16356d;
+height:28px;
+border-radius:18px;
+display:flex;
+align-items:center;
+justify-content:center;
 font-weight:600;
 ">
 📏 ${i[1].qtd.toLocaleString('pt-BR')} m
 </div>
 
+</div>
+
 <div style="
-width:220px;
-text-align:left;
-font-size:15px;
+width:190px;
+text-align:center;
+">
+
+<div style="
+font-size:10px;
+color:#8fb3ff;
+letter-spacing:1px;
+margin-bottom:4px;
+">
+FATURAMENTO
+</div>
+
+<div style="
+background:#2563eb;
+height:28px;
+border-radius:18px;
+display:flex;
+align-items:center;
+justify-content:center;
 font-weight:600;
+box-shadow:0 0 12px rgba(37,99,235,.35);
+">
+💰 ${moeda(i[1].valor)}
+</div>
+
+</div>
+
+<div style="
+width:140px;
+text-align:center;
+">
+
+<div style="
+font-size:10px;
+color:#8fb3ff;
+letter-spacing:1px;
+margin-bottom:4px;
+">
+PREÇO MÉDIO
+</div>
+
+<div style="
+background:#0f766e;
+height:28px;
+border-radius:18px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:600;
+box-shadow:0 0 12px rgba(15,118,110,.35);
+">
+🏷️ ${moeda(
+i[1].qtd
+? i[1].valor / i[1].qtd
+: 0
+)}
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+`;
+
+return;
+}
+
+html += `
+
+<div style="
+padding:10px 0;
+border-bottom:1px solid rgba(255,255,255,.08);
+">
+
+<div style="
+display:grid;
+grid-template-columns:
+minmax(0,1fr)
+130px
+210px
+120px;
+gap:12px;
+align-items:center;
+font-size:14px;
+width:100%;
+box-sizing:border-box;
+">
+
+<div
+${produtos ? `onclick="detalharProduto('${i[0].replace(/'/g,"\\'")}')"` : ''}
+style="
+font-weight:600;
+cursor:${produtos ? 'pointer' : 'default'};
+overflow:hidden;
+text-overflow:ellipsis;
+white-space:nowrap;
+padding-right:20px;
+"
+>
+${i[1].codigo} • ${i[0]}
+</div>
+
+<div style="
+width:130px;
+text-align:left;
+font-variant-numeric:tabular-nums;
+">
+📏 ${i[1].qtd.toLocaleString('pt-BR')}
+</div>
+
+<div style="
+width:210px;
+text-align:left;
+font-variant-numeric:tabular-nums;
 ">
 💰 ${moeda(i[1].valor)}
 </div>
@@ -938,117 +1482,14 @@ font-weight:600;
 <div style="
 width:120px;
 text-align:left;
-font-size:15px;
-font-weight:600;
+font-variant-numeric:tabular-nums;
 ">
-🏷️ ${moeda(i[1].qtd ? i[1].valor / i[1].qtd : 0)}
+🏷️ ${moeda(
+i[1].qtd
+? i[1].valor / i[1].qtd
+: 0
+)}
 </div>
-
-` : `
-
-<span>
-${i[1].codigo} • ${i[0]}
-</span>
-
-`}
-
-</div>
-
-</div>
-
-<div>
-
-${top10 ? '' : `
-${id !== 'clientes' ? `
-<div class="bar-bg">
-<div class="bar" style="width:${pct}%"></div>
-</div>
-` : ''}
-
-`}
-
-${produtos ? `
-<div style="
-display:flex;
-justify-content:flex-end;
-gap:12px;
-margin-top:${top10 ? '4px' : '8px'};
-font-size:${top10 ? '10px' : '13px'};
-font-weight:600;
-flex-wrap:nowrap;
-align-items:center;
-">
-
-<div style="text-align:center">
-<div style="
-font-size:8px;
-color:#8fb3ff;
-margin-bottom:4px;
-letter-spacing:1px;
-">
-METROS
-</div>
-
-<span style="
-background:#16356d;
-padding:9px 8px;
-border-radius:20px;
-color:#dbe7ff;
-display:inline-block;
-min-width:${top10 ? '65px' : '110px'};
-">
-📏 ${i[1].qtd.toLocaleString('pt-BR')} m
-</span>
-</div>
-
-<div style="text-align:center">
-<div style="
-font-size:10px;
-color:#8fb3ff;
-margin-bottom:4px;
-letter-spacing:1px;
-">
-FATURAMENTO
-</div>
-
-<span style="
-background:#2563eb;
-padding:5px 12px;
-border-radius:20px;
-color:white;
-display:inline-block;
-min-width:${top10 ? '95px' : '140px'};
-box-shadow:0 0 10px rgba(37,99,235,.35);
-">
-💰 ${moeda(i[1].valor)}
-</span>
-</div>
-
-<div style="text-align:center">
-<div style="
-font-size:10px;
-color:#8fb3ff;
-margin-bottom:4px;
-letter-spacing:1px;
-">
-PREÇO MÉDIO
-</div>
-
-<span style="
-background:#0f766e;
-padding:5px 12px;
-border-radius:20px;
-color:white;
-display:inline-block;
-min-width:${top10 ? '65px' : '110px'};
-box-shadow:0 0 10px rgba(15,118,110,.35);
-">
-🏷️ ${moeda(i[1].qtd ? i[1].valor / i[1].qtd : 0)}
-</span>
-</div>
-
-</div>
-` : ''}
 
 </div>
 
@@ -1086,18 +1527,19 @@ numero(x['Valor Fat+Valor IPI+Valor Frete']);
 });
 
 html += `
+
 <div style="
 background:#10295e;
 padding:20px;
-margin:10px 0 25px 0;
+margin:10px 0 20px 0;
 border-radius:12px;
 ">
 
-<h3>📦 ${i[0]}</h3>
+<h3>${i[0]}</h3>
 
 <table style="
 width:100%;
-color:white;
+border-collapse:collapse;
 ">
 
 <tr>
@@ -1105,37 +1547,33 @@ color:white;
 <th align="right">Metros</th>
 <th align="right">Faturamento</th>
 </tr>
-`;
 
-Object.entries(clientes)
+${Object.entries(clientes)
 .sort((a,b)=>b[1].valor-a[1].valor)
-.forEach(([cliente,d])=>{
+.map(([cliente,d])=>`
 
-html += `
 <tr>
 <td>${cliente}</td>
 <td align="right">
-${d.metros.toLocaleString('pt-BR')} m
+${d.metros.toLocaleString('pt-BR')}
 </td>
 <td align="right">
 ${moeda(d.valor)}
 </td>
 </tr>
-`;
 
-});
+`).join('')}
 
-html += `
 </table>
+
 </div>
 `;
 
 }
 
-
 });
 
-el.innerHTML=html;
+el.innerHTML = html;
 
 }
 
