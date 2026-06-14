@@ -1112,6 +1112,7 @@ const produtosExcluidos = [
 '383',
 '4251',
 '4553',
+'6496',
 '7109',
 '8938',
 '8939',
@@ -1302,11 +1303,15 @@ html += `
 margin-bottom:28px;
 ">
 
-<div style="
+<div
+onclick="detalharProduto('${i[0].replace(/'/g,"\\'")}')"
+style="
 font-weight:600;
 font-size:14px;
 margin-bottom:10px;
-">
+cursor:pointer;
+"
+>
 ${i[1].codigo} • ${i[0]}
 </div>
 
@@ -1430,6 +1435,12 @@ i[1].qtd
 </div>
 
 `;
+
+if(produtoSelecionado === i[0]){
+
+html += produtoDetalheHTML;
+
+}
 
 return;
 }
