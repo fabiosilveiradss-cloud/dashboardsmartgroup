@@ -918,26 +918,37 @@ document.getElementById('anoFiltro');
 select.innerHTML =
 '<option value="">Todos os Anos</option>';
 
-const anos = [...new Set(
+const anos = [
+...new Set(
 
 dados.map(x=>{
 
 const data =
-String(x['Dt.faturam'] || '');
+String(x['Dt.faturam'] || '').trim();
 
-if(data.length >= 4){
+if(!data) return '';
+
+if(data.includes('/')){
+
+return data.split('/').pop();
+
+}
+
+if(data.includes('-')){
 
 return data.substring(0,4);
 
 }
 
-return null;
+return '';
 
 })
 
 .filter(Boolean)
 
-)].sort();
+)
+
+].sort();
 
 anos.forEach(a=>{
 
@@ -1144,11 +1155,6 @@ const gruposExcluidos = [
 
 
 ];
-
-const okExclusao =
-!gruposExcluidos.includes(
-String(x['Descrição'] || '').trim()
-);
 
 function agrupar(campo){
 
