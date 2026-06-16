@@ -333,6 +333,16 @@ console.log(texto);
 
 dados = parseCSV(texto);
 
+console.log(
+'Total carregado:',
+dados.length
+);
+
+console.log(
+'Primeiro registro:',
+dados[0]
+);
+
 popularUF();
 popularClientesMulti();
 popularRepresentantesMulti();
@@ -574,26 +584,83 @@ console.log(anosTeste);
 
 function parseCSV(texto){
 
-const linhas=texto.split(/\r?\n/).filter(x=>x.trim());
+const linhas =
+texto
+.split(/\r?\n/)
+.filter(x => x.trim());
 
-const idx=linhas.findIndex(l=>l.includes('Razão social'));
+const idx =
+linhas.findIndex(
+l => l.includes('Razão social')
+);
 
-const headers=linhas[idx].split(';').map(h=>h.trim());
+if(idx === -1){
 
-return linhas.slice(idx+1).map(l=>{
+console.error(
+'Cabeçalho não encontrado'
+);
 
-const cols=l.split(';');
+return [];
 
+}
 
-let o={};
+const cabecalho =
+linhas[idx];
+
+console.log(
+'Linha do cabeçalho:',
+cabecalho
+);
+
+let separador = ';';
+
+if(
+cabecalho.split(',').length >
+cabecalho.split(';').length
+){
+separador = ',';
+}
+
+console.log(
+'Separador detectado:',
+separador
+);
+
+const headers =
+cabecalho
+.split(separador)
+.map(h => h.trim());
+
+const resultado =
+linhas
+.slice(idx + 1)
+.map(l=>{
+
+const cols =
+l.split(separador);
+
+let obj = {};
 
 headers.forEach((h,i)=>{
-o[h]=(cols[i]||'').trim();
+
+obj[h] =
+(cols[i] || '').trim();
+
 });
 
-return o;
+return obj;
 
-}).filter(x=>x['Razão social']);
+})
+.filter(
+x => x['Razão social']
+);
+
+console.log(
+'Registros encontrados:',
+resultado.length
+);
+
+return resultado;
 
 }
 
