@@ -319,9 +319,36 @@ let produtoDetalheHTML = '';
 
 let clientesSelecionados = [];
 let representantesSelecionados = [];
+async function carregarAutomatico(){
 
+const url =
+'https://docs.google.com/spreadsheets/d/e/2PACX-1vTnWm0t51YxEuoN-wRpTJsowAN_Z2FtbpfqTRlpA9PwG8N3oT-IEIGnhP_R2UGD1jSUoRB1NTuS4NAv/pub?output=csv';
+
+const resposta =
+await fetch(url);
+
+const texto =
+await resposta.text();
+
+dados = parseCSV(texto);
+
+popularUF();
+popularClientesMulti();
+popularRepresentantesMulti();
+popularAnos();
+
+aplicarFiltros();
+
+console.log(
+'Dados carregados automaticamente'
+);
+
+}
 document.getElementById('csvFile').addEventListener('change', carregar);
-
+window.addEventListener(
+'load',
+carregarAutomatico
+);
 document.getElementById('ufFiltro')
 .addEventListener('change', ()=>{
 aplicarFiltros();
