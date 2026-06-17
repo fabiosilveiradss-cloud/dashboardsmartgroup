@@ -343,6 +343,25 @@ console.log(
 dados[0]
 );
 console.log(
+'Primeiro registro:',
+dados[0]
+);
+
+console.log(
+'Valor:',
+dados[0]['Valor Fat+Valor IPI+Valor Frete']
+);
+
+console.log(
+'Qtd:',
+dados[0]['Qtd.item/Ft']
+);
+
+console.log(
+'Cliente:',
+dados[0]['Razão social']
+);
+console.log(
 Object.keys(dados[0])
 );
 
@@ -602,72 +621,48 @@ l => l.includes('Razão social')
 );
 
 if(idx === -1){
-
-console.error(
-'Cabeçalho não encontrado'
-);
-
 return [];
-
 }
 
-const cabecalho =
-linhas[idx];
+const cabecalho = linhas[idx];
 
-console.log(
-'Linha do cabeçalho:',
-cabecalho
+const headers = cabecalho
+.split(',')
+.map(h =>
+h.replace(/"/g,'').trim()
 );
 
-let separador = ';';
+const resultado = [];
 
-if(
-cabecalho.split(',').length >
-cabecalho.split(';').length
-){
-separador = ',';
-}
+for(let i = idx + 1; i < linhas.length; i++){
 
-console.log(
-'Separador detectado:',
-separador
+const linha = linhas[i];
+
+const cols = linha.match(
+/(".*?"|[^",]+)(?=\s*,|\s*$)/g
 );
 
-const headers =
-cabecalho
-.split(separador)
-.map(h => h.trim());
-
-const resultado =
-linhas
-.slice(idx + 1)
-.map(l=>{
-
-const cols =
-l.split(separador);
+if(!cols) continue;
 
 let obj = {};
 
-headers.forEach((h,i)=>{
+headers.forEach((h,j)=>{
 
 obj[h] =
-(cols[i] || '').trim();
+(cols[j] || '')
+.replace(/^"/,'')
+.replace(/"$/,'')
+.trim();
 
 });
 
-return obj;
+resultado.push(obj);
 
-})
-.filter(
+}
+
+return resultado.filter(
 x => x['Razão social']
 );
-
-console.log(
-'Registros encontrados:',
-resultado.length
-);
-
-return resultado;
 
 }
 
