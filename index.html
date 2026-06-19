@@ -610,58 +610,66 @@ console.log(anosTeste);
 
 function parseCSV(texto){
 
-const linhas =
-texto
-.split(/\r?\n/)
-.filter(x => x.trim());
+const linhas = texto
+  .split(/\r?\n/)
+  .filter(l => l.trim());
 
-const idx =
-linhas.findIndex(
-l => l.includes('Razão social')
+const idx = linhas.findIndex(
+  l => l.includes('Razão social')
 );
 
 if(idx === -1){
-return [];
+  console.error('Cabeçalho não encontrado');
+  return [];
 }
 
-const cabecalho = linhas[idx];
-
-const headers = cabecalho
-.split(',')
-.map(h =>
-h.replace(/"/g,'').trim()
-);
+const headers = linhas[idx]
+  .split(',')
+  .map(h => h.replace(/"/g,'').trim());
 
 const resultado = [];
 
 for(let i = idx + 1; i < linhas.length; i++){
 
-const linha = linhas[i];
+  const linha = linhas[i];
 
-const cols = linha.match(
-/(".*?"|[^",]+)(?=\s*,|\s*$)/g
-);
+  let valores = [];
+  let atual = '';
+  let dentroAspas = false;
 
-if(!cols) continue;
+  for(let c of linha){
 
-let obj = {};
+    if(c === '"'){
+      dentroAspas = !dentroAspas;
+      continue;
+    }
 
-headers.forEach((h,j)=>{
+    if(c === ',' && !dentroAspas){
+      valores.push(atual);
+      atual = '';
+      continue;
+    }
 
-obj[h] =
-(cols[j] || '')
-.replace(/^"/,'')
-.replace(/"$/,'')
-.trim();
+    atual += c;
+  }
 
-});
+  valores.push(atual);
 
-resultado.push(obj);
+  if(valores.length < headers.length){
+    continue;
+  }
 
+  let obj = {};
+
+  headers.forEach((h,j)=>{
+    obj[h] = (valores[j] || '').trim();
+  });
+
+  resultado.push(obj);
 }
 
 return resultado.filter(
-x => x['Razão social']
+  x => x['Razão social']
 );
 
 }
