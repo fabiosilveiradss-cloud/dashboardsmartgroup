@@ -322,16 +322,32 @@ let representantesSelecionados = [];
 async function carregarAutomatico(){
 
 const url =
-'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6Uz03TJo2klq0pR7cOXoWZKSXFLjoV4Z73WCmfChkppyNf7O6AfbD26Ml0t5FgZpct5G5QXggKjnu/pub?output=csv';
+'https://script.google.com/macros/s/AKfycbwhRhN4FMhCLy4abvrZ4JjAu6JkQFurf_CY5eyyoB010FWGkHIl3Jc15NNudk6aRoOz/exec';
 
 const resposta =
 await fetch(url);
 
-const texto =
-await resposta.text();
-console.log(texto);
+dados =
+await resposta.json();
 
-dados = parseCSV(texto);
+console.log(
+'Total carregado:',
+dados.length
+);
+
+console.log(
+'Primeiro registro:',
+dados[0]
+);
+
+popularUF();
+popularClientesMulti();
+popularRepresentantesMulti();
+popularAnos();
+
+aplicarFiltros();
+
+}
 
 console.log(
 'Total carregado:',
