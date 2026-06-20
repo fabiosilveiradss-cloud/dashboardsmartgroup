@@ -340,29 +340,6 @@ console.log(
 dados[0]
 );
 
-popularUF();
-popularClientesMulti();
-popularRepresentantesMulti();
-popularAnos();
-
-aplicarFiltros();
-
-}
-
-console.log(
-'Total carregado:',
-dados.length
-);
-
-console.log(
-'Primeiro registro:',
-dados[0]
-);
-console.log(
-'Primeiro registro:',
-dados[0]
-);
-
 console.log(
 'Valor:',
 dados[0]['Valor Fat+Valor IPI+Valor Frete']
@@ -377,14 +354,11 @@ console.log(
 'Cliente:',
 dados[0]['Razão social']
 );
+
 console.log(
 Object.keys(dados[0])
 );
 
-console.log(
-dados[0]
-);
-  
 popularUF();
 popularClientesMulti();
 popularRepresentantesMulti();
@@ -397,6 +371,7 @@ console.log(
 );
 
 }
+  
 document.getElementById('csvFile').addEventListener('change', carregar);
 window.addEventListener(
 'load',
