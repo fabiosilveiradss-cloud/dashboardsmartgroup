@@ -568,37 +568,6 @@ file
 
 }
 
-console.log(
-'Total registros carregados:',
-dados.length
-);
-
-const anosTeste = {};
-
-dados.forEach(x=>{
-
-const ano =
-String(x['Dt.faturam']).substring(0,4);
-
-if(!anosTeste[ano]){
-
-anosTeste[ano] = {
-qtd:0,
-fat:0
-};
-
-}
-
-anosTeste[ano].qtd++;
-
-anosTeste[ano].fat += numero(
-x['Valor Fat+Valor IPI+Valor Frete']
-);
-
-});
-
-console.log(anosTeste);
-
 function parseCSV(texto){
 
 const linhas = texto
