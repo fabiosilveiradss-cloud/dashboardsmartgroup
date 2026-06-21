@@ -319,13 +319,18 @@ let produtoDetalheHTML = '';
 
 let clientesSelecionados = [];
 let representantesSelecionados = [];
+  
 async function carregarAutomatico(){
 
+try{
+
 const url =
-'https://script.google.com/macros/s/AKfycbwhRhN4FMhCLy4abvrZ4JjAu6JkQFurf_CY5eyyoB010FWGkHIl3Jc15NNudk6aRoOz/exec';
+'https://script.google.com/macros/s/AKfycbx4Opdm8TfGtcxBZolGLj2nYJ3AQgFx-7Dl4ppm5_0q-O5klPSzz1sH_KAbqEk6TeLQ/exec';
 
 const resposta =
-await fetch(url);
+await fetch(
+url + '?t=' + Date.now()
+);
 
 dados =
 await resposta.json();
@@ -335,30 +340,6 @@ console.log(
 dados.length
 );
 
-console.log(
-'Primeiro registro:',
-dados[0]
-);
-
-console.log(
-'Valor:',
-dados[0]['Valor Fat+Valor IPI+Valor Frete']
-);
-
-console.log(
-'Qtd:',
-dados[0]['Qtd.item/Ft']
-);
-
-console.log(
-'Cliente:',
-dados[0]['Razão social']
-);
-
-console.log(
-Object.keys(dados[0])
-);
-
 popularUF();
 popularClientesMulti();
 popularRepresentantesMulti();
@@ -366,11 +347,25 @@ popularAnos();
 
 aplicarFiltros();
 
-console.log(
-'Dados carregados automaticamente'
+}catch(e){
+
+console.error(
+'Erro ao carregar dados:',
+e
+);
+
+alert(
+'Erro ao carregar dados do Apps Script'
 );
 
 }
+
+}
+
+setInterval(
+carregarAutomatico,
+20 * 60 * 1000
+);
   
 document.getElementById('csvFile').addEventListener('change', carregar);
 window.addEventListener(
