@@ -1232,7 +1232,11 @@ filtrados.forEach(x=>{
         return;
     }
 
-    const k = x[campo] || 'Não informado';
+  const k = (x[campo] || '').trim();
+
+if(k === ''){
+  return o;
+}
 
     const valor = numero(
         x['Valor Fat+Valor IPI+Valor Frete']
