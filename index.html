@@ -1299,9 +1299,14 @@ agrupar('Desc.completa');
 
 barras('clientes',clientesAgrupados,10);
 barras('grupo',produtosAgrupados,10);
-barras('produtos',produtosAgrupados,9999);
-
 ufs();
+
+document.getElementById('produtos').innerHTML =
+'<p>Carregando produtos vendidos...</p>';
+
+setTimeout(() => {
+  barras('produtos',produtosAgrupados,9999);
+}, 100);
 
 }
 
